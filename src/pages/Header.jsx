@@ -1,34 +1,33 @@
-import { React, Component } from 'react';
+import React from 'react';
 import { connect } from 'react-redux';
 import propTypes from 'prop-types';
 import md5 from 'crypto-js/md5';
 
-class Header extends Component {
-  render() {
-    const { name, email } = this.props;
-
-    const emailHash = (userEmail) => {
+class Header extends React.Component {
+    emailHash = (userEmail) => {
       const hash = md5(userEmail).toString();
       const url = `https://www.gravatar.com/avatar/${hash}`;
       return url;
     };
 
-    return (
-      <header>
-        <img
-          data-testid="header-profile-picture"
-          alt="profile_image"
-          src={ emailHash(email) }
-        />
-        <p data-testid="header-player-name">
-          {' '}
-          Nome :
-          { name }
-        </p>
-        <h4 data-testid="header-score">0</h4>
-      </header>
-    );
-  }
+    render() {
+      const { name, email } = this.props;
+      return (
+        <div>
+          <img
+            data-testid="header-profile-picture"
+            alt="profile_image"
+            src={ this.emailHash(email) }
+          />
+          <p data-testid="header-player-name">
+            {' '}
+            Nome :
+            { name }
+          </p>
+          <h4 data-testid="header-score">0</h4>
+        </div>
+      );
+    }
 }
 
 Header.propTypes = {
@@ -36,9 +35,9 @@ Header.propTypes = {
   email: propTypes.string,
 }.isRequired;
 
-/* const mapStateToProps = ({}) => ({
-    name:
-    email:
-}) */
+const mapStateToProps = (state) => ({
+  name: state.loginState.name,
+  email: state.loginState.email,
+});
 
 export default connect(mapStateToProps)(Header);

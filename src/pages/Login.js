@@ -75,7 +75,7 @@ class Login extends React.Component {
             name="isSaveButtonDisabled"
             disabled={ isLoginButtonDisabled }
             onClick={ () => {
-              handleTokenClick();
+              handleTokenClick(loginName, loginEmail);
               history.push('/game');
             } }
           >
@@ -104,8 +104,9 @@ Login.propTypes = {
 };
 
 const mapDispatchToProps = (dispatch) => ({
-  handleTokenClick: () => {
+  handleTokenClick: (name, email) => {
     dispatch(getToken());
+    dispatch(login(name, email));
   },
 });
 
