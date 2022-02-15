@@ -9,7 +9,7 @@ export function login(name, email) {
   };
 }
 
-function sucessResponse(token) {
+export function sucessResponse(token) {
   return {
     type: SUCESS_RESPONSE,
     token,
