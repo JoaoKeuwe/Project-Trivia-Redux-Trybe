@@ -1,8 +1,9 @@
 import React from 'react';
 import propTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { fetchQuestionsApi, fetchTokenApi } from '../services/triviaApi';
-import { sucessResponse } from '../store/action';
+import Header from './Header';
+import { fetchQuestionsApi } from '../services/triviaApi';
+import { getToken } from '../store/action';
 
 const NUMBER_RANDOM = 0.5;
 const RESPONSE_CODE = 3;
@@ -23,10 +24,17 @@ class Game extends React.Component {
   }
 
   getQuestionsApi = async () => {
-    const { tokenState } = this.props;
+    const { tokenState, loginToken } = this.props;
+    console.group(tokenState);
     const questionsReturn = await fetchQuestionsApi(tokenState);
     // Se o TOKEN expirar, a API retorna um RESPONSE_CODE = 3 -> no else é solicitando um novo TOKEN
-    if (questionsReturn.response_code !== RESPONSE_CODE) {
+    if (questionsReturn.response_code === RESPONSE_CODE) {
+      console.log(questionsReturn);
+      //  localStorage.clear();
+      loginToken();
+      this.getQuestionsApi();
+    } else {
+      console.log(questionsReturn);
       // Coloca todas as respostas em um único Array;
       const allAnswers = [
         questionsReturn.results[0].correct_answer,
@@ -51,12 +59,6 @@ class Game extends React.Component {
         answers: randomAnswers,
         isFetching: true,
       });
-    } else {
-      const tokenApi = await fetchTokenApi();
-      const { loginToken } = this.props;
-      localStorage.setItem('token', tokenApi.token);
-      loginToken(tokenApi.token);
-      this.getQuestionsApi();
     }
   }
 
@@ -64,6 +66,7 @@ class Game extends React.Component {
     const { Allquestions, numberQuestion, isFetching, answers } = this.state;
     return (
       <main>
+        <Header />
         {isFetching && (
           <div>
             <h2 data-testid="question-category">
@@ -93,11 +96,11 @@ Game.propTypes = {
 }.isRequired;
 
 const mapDispatchToProps = (dispatch) => ({
-  loginToken: (token) => dispatch(sucessResponse(token)),
+  loginToken: () => dispatch(getToken()),
 });
 
 const mapStateToProps = (state) => ({
-  tokenState: state.token,
+  tokenState: state.token.token,
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Game);

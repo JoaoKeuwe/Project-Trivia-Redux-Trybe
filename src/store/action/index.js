@@ -9,7 +9,7 @@ export function login(name, email) {
   };
 }
 
-function sucessResponse(token) {
+export function sucessResponse(token) {
   return {
     type: SUCESS_RESPONSE,
     token,
@@ -21,6 +21,7 @@ export function getToken() {
     try {
       const response = await fetch('https://opentdb.com/api_token.php?command=request');
       const token = await response.json();
+      console.log(token);
       localStorage.setItem('token', JSON.stringify(token));
       dispeatch(sucessResponse(token.token));
     } catch (error) {
@@ -28,3 +29,9 @@ export function getToken() {
     }
   };
 }
+
+// export const getApiToken = async () => {
+//   const response = await fetch("https://opentdb.com/api_token.php?command=request");
+//   const data = await response.json();
+//   return data;
+// };
