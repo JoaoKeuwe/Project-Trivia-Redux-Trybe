@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+/* import {login} from '../store/action'; */
 
 class Login extends React.Component {
   constructor() {
