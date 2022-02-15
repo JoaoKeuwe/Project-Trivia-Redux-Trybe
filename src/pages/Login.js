@@ -1,6 +1,7 @@
 import React from 'react';
+import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-/* import {login} from '../store/action'; */
+import { getToken, login } from '../store/action';
 
 class Login extends React.Component {
   constructor() {
@@ -12,7 +13,6 @@ class Login extends React.Component {
     };
     this.handleOnInputChange = this.handleOnInputChange.bind(this);
     this.loginButtonDisabled = this.loginButtonDisabled.bind(this);
-    this.initGame = this.initGame.bind(this);
   }
 
   handleSettings = () => {
@@ -37,20 +37,13 @@ class Login extends React.Component {
     }
   }
 
-  async initGame() {
-    const response = await fetch('https://opentdb.com/api_token.php?command=request');
-    const token = await response.json();
-    const { history } = this.props;
-    localStorage.setItem('token', JSON.stringify(token));
-    history.push('/game');
-  }
-
   render() {
     const {
       loginEmail,
       loginName,
       isLoginButtonDisabled,
     } = this.state;
+    const { history, handleTokenClick } = this.props;
     return (
       <div>
         <form>
@@ -81,7 +74,10 @@ class Login extends React.Component {
             data-testid="btn-play"
             name="isSaveButtonDisabled"
             disabled={ isLoginButtonDisabled }
-            onClick={ this.initGame }
+            onClick={ () => {
+              handleTokenClick();
+              history.push('/game');
+            } }
           >
             Play
           </button>
@@ -101,9 +97,16 @@ class Login extends React.Component {
 }
 
 Login.propTypes = {
+  handleTokenClick: PropTypes.func.isRequired,
   history: PropTypes.shape({
     push: PropTypes.func,
   }).isRequired,
 };
 
-export default Login;
+const mapDispatchToProps = (dispatch) => ({
+  handleTokenClick: () => {
+    dispatch(getToken());
+  },
+});
+
+export default connect(null, mapDispatchToProps)(Login);
