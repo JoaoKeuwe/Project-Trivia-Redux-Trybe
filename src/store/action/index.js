@@ -1,7 +1,7 @@
 export const LOGIN = 'LOGIN';
 export const SUCESS_RESPONSE = 'SUCESS_RESPONSE';
 
-export function login( name, email ) {
+export function login(name, email) {
   return {
     type: LOGIN,
     name,
@@ -9,7 +9,7 @@ export function login( name, email ) {
   };
 }
 
-function sucessResponse(token) {
+export function sucessResponse(token) {
   return {
     type: SUCESS_RESPONSE,
     token,
