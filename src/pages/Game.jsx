@@ -7,7 +7,7 @@ import { sucessResponse } from '../store/action';
 const NUMBER_RANDOM = 0.5;
 const RESPONSE_CODE = 3;
 
-class GameScreen extends React.Component {
+class Game extends React.Component {
   constructor() {
     super();
     this.state = {
@@ -100,4 +100,4 @@ const mapStateToProps = (state) => ({
   tokenState: state.token,
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(GameScreen);
+export default connect(mapStateToProps, mapDispatchToProps)(Game);
