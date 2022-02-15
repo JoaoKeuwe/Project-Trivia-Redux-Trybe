@@ -14,6 +14,11 @@ class Login extends React.Component {
     this.initGame = this.initGame.bind(this);
   }
 
+  handleSettings = () => {
+    const { history } = this.props;
+    history.push('/settings');
+  }
+
   handleOnInputChange({ target }) {
     const { name, value } = target;
     this.setState({
@@ -80,9 +85,12 @@ class Login extends React.Component {
             Play
           </button>
           <button
-            type="submit"
+            type="button"
             data-testid="btn-settings"
+            onClick={ this.handleSettings }
+
           >
+
             Settings
           </button>
         </form>
