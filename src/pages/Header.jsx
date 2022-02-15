@@ -1,27 +1,31 @@
 import { React, Component } from 'react';
 import { connect } from 'react-redux';
 import propTypes from 'prop-types';
-
-const mapStateToProps = (state) => {
-  const { player: { name, gravatarEmail, assertions, score } } = state;
-  return {
-    name, gravatarEmail, assertions, score,
-  };
-};
+import md5 from 'crypto-js/md5';
 
 class Header extends Component {
   render() {
-    const { name, gravatarEmail, assertions, score } = this.props;
+    const { name, email } = this.props;
+
+    const emailHash = (userEmail) => {
+      const hash = md5(userEmail).toString();
+      const url = `https://www.gravatar.com/avatar/${hash}`;
+      return url;
+    };
+
     return (
       <header>
-        <h2>{ name }</h2>
         <img
           data-testid="header-profile-picture"
           alt="profile_image"
-          src={ gravatarEmail }
+          src={ emailHash(email) }
         />
-        <h4 data-testid="header-player-name">{ assertions }</h4>
-        <h4 data-testid="header-score">{ score }</h4>
+        <p data-testid="header-player-name">
+          {' '}
+          Nome :
+          { name }
+        </p>
+        <h4 data-testid="header-score">0</h4>
       </header>
     );
   }
@@ -29,9 +33,12 @@ class Header extends Component {
 
 Header.propTypes = {
   name: propTypes.string,
-  gravatarEmail: propTypes.string,
-  assertions: propTypes.number,
-  score: propTypes.number,
+  email: propTypes.string,
 }.isRequired;
+
+/* const mapStateToProps = ({}) => ({
+    name:
+    email:
+}) */
 
 export default connect(mapStateToProps)(Header);

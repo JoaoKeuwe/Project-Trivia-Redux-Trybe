@@ -1,9 +1,13 @@
+export const LOGIN = 'LOGIN';
 export const SUCESS_RESPONSE = 'SUCESS_RESPONSE';
 
-export const action = (value) => ({
-  type: 'CLICK_UPDATE_VALUE',
-  newValue: value,
-});
+export function login( name, email ) {
+  return {
+    type: LOGIN,
+    name,
+    email,
+  };
+}
 
 function sucessResponse(token) {
   return {

@@ -1,7 +1,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import { getToken } from '../store/action';
+import { getToken, login } from '../store/action';
 
 class Login extends React.Component {
   constructor() {
