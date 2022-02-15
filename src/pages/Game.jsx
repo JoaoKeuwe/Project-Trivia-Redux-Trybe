@@ -87,7 +87,7 @@ class Game extends React.Component {
   }
 }
 
-GameScreen.propTypes = {
+Game.propTypes = {
   tokenState: propTypes.string,
   loginToken: propTypes.func,
 }.isRequired;
