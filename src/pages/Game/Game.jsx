@@ -1,7 +1,7 @@
 import React from 'react';
 import propTypes from 'prop-types';
 import { connect } from 'react-redux';
-import Header from '../Header';
+import Header from '../../components/Header';
 import { fetchQuestionsApi, fetchTokenApi } from '../../services/triviaApi';
 import { getToken } from '../../store/action';
 import './Game.css';
