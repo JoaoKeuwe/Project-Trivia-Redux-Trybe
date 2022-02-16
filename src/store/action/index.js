@@ -17,13 +17,13 @@ export function sucessResponse(token) {
 }
 
 export function getToken() {
-  return async (dispeatch) => {
+  return async (dispatch) => {
     try {
       const response = await fetch('https://opentdb.com/api_token.php?command=request');
       const token = await response.json();
       console.log(token);
       localStorage.setItem('token', JSON.stringify(token));
-      dispeatch(sucessResponse(token.token));
+      dispatch(sucessResponse(token.token));
     } catch (error) {
       console.log(error);
     }
