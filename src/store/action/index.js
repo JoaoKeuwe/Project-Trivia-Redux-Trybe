@@ -19,11 +19,16 @@ export function sucessResponse(token) {
 export function getToken() {
   return async (dispatch) => {
     try {
-      const response = await fetch('https://opentdb.com/api_token.php?command=request');
-      const token = await response.json();
-      console.log(token);
-      localStorage.setItem('token', JSON.stringify(token));
-      dispatch(sucessResponse(token.token));
+      if (localStorage.getItem('token')) {
+        const tokenLocalStorage = JSON.parse(localStorage.getItem('token'));
+        dispatch(sucessResponse(tokenLocalStorage.token));
+      } else {
+        const response = await fetch('https://opentdb.com/api_token.php?command=request');
+        const token = await response.json();
+        console.log(token);
+        localStorage.setItem('token', JSON.stringify(token));
+        dispatch(sucessResponse(token.token));
+      }
     } catch (error) {
       console.log(error);
     }

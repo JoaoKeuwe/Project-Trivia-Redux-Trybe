@@ -1,9 +1,0 @@
-.allQuestions #correct-answer {
-  border: 3px solid rgb(6, 240, 15);
-}
-
-.allQuestions #wrong-answer-0,
-.allQuestions #wrong-answer-1,
-.allQuestions #wrong-answer-2 {
-  border: 3px solid rgb(255, 0, 0);
-}

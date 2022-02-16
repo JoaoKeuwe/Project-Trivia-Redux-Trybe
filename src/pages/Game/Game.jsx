@@ -1,9 +1,9 @@
 import React from 'react';
 import propTypes from 'prop-types';
 import { connect } from 'react-redux';
-import Header from './Header';
-import { fetchQuestionsApi, fetchTokenApi } from '../services/triviaApi';
-import { getToken } from '../store/action';
+import Header from '../Header';
+import { fetchQuestionsApi, fetchTokenApi } from '../../services/triviaApi';
+import { getToken } from '../../store/action';
 import './Game.css';
 
 const NUMBER_RANDOM = 0.5;
@@ -29,8 +29,9 @@ class Game extends React.Component {
   }
 
   getQuestionsApi = async () => {
-    const { tokenState } = this.props;
-    const questionsReturn = await fetchQuestionsApi(tokenState);
+    // const { tokenState } = this.props;
+    const tokenLocalStorage = JSON.parse(localStorage.getItem('token'));
+    const questionsReturn = await fetchQuestionsApi(tokenLocalStorage.token);
 
     // Essa condicao faz com que, se a resposta da API for 3 significando que o token expirou, o LocalStorage seja limpo e a funcao LoginState seja chamada para a requisicao de um novo token
 
@@ -109,6 +110,8 @@ class Game extends React.Component {
                   data-testid={ dataTestId }
                   id={ dataTestId }
                   disabled={ btnDisabled }
+                  className={ (dataTestId === 'correct-answer')
+                    ? 'btn-correct' : 'btn-false' }
                   onClick={ (evt) => this.disableBtnQuestions(evt) }
                 >
                   {answer}
@@ -131,7 +134,7 @@ const mapDispatchToProps = (dispatch) => ({
 });
 
 const mapStateToProps = (state) => ({
-  tokenState: state.token.token,
+  tokenState: state.token,
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Game);
