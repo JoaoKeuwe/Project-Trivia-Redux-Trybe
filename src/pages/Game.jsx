@@ -16,7 +16,10 @@ class Game extends React.Component {
       numberQuestion: 0,
       answers: [],
       isFetching: false,
+      btnDisabled: false,
     };
+
+    this.getQuestionsApi = this.getQuestionsApi.bind(this);
   }
 
   componentDidMount() {
@@ -25,21 +28,26 @@ class Game extends React.Component {
 
   getQuestionsApi = async () => {
     const { tokenState, loginToken } = this.props;
+    const tokenLocalStorage = JSON.parse(localStorage.getItem('token'));
     console.group(tokenState);
-    const questionsReturn = await fetchQuestionsApi(tokenState);
-    // Se o TOKEN expirar, a API retorna um RESPONSE_CODE = 3 -> no else é solicitando um novo TOKEN
+    console.group(tokenLocalStorage);
+    const questionsReturn = await fetchQuestionsApi(tokenLocalStorage.token);
+
+    // Essa condicao faz com que, se a resposta da API for 3 significando que o token expirou, o LocalStorage seja limpo e a funcao LoginState seja chamada para a requisicao de um novo token
     if (questionsReturn.response_code === RESPONSE_CODE) {
       console.log(questionsReturn);
-      //  localStorage.clear();
-      loginToken();
+      localStorage.clear();
+      await loginToken();
       this.getQuestionsApi();
     } else {
       console.log(questionsReturn);
+
       // Coloca todas as respostas em um único Array;
       const allAnswers = [
         questionsReturn.results[0].correct_answer,
         ...questionsReturn.results[0].incorrect_answers];
       const answersWithDataTestId = [];
+
       // Coloca todas as respostas com seu respectivo DataTestId em um Array para criar o Random;
       allAnswers.map((answer, index) => {
         if (index === 0) {
@@ -49,6 +57,7 @@ class Game extends React.Component {
         answersWithDataTestId.push({ answer, dataTestId: `wrong-answer-${index - 1}` });
         return answersWithDataTestId;
       });
+
       // Embaralha o conteúdo do array de respostas
       // Parte do código retirado de: https://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array
       const randomAnswers = answersWithDataTestId.sort(
@@ -62,8 +71,13 @@ class Game extends React.Component {
     }
   }
 
+  disableBtnQuestions(evt) {
+    this.setState({ btnDisabled: true });
+    console.log(evt.target);
+  }
+
   render() {
-    const { Allquestions, numberQuestion, isFetching, answers } = this.state;
+    const { Allquestions, numberQuestion, isFetching, answers, btnDisabled } = this.state;
     return (
       <main>
         <Header />
@@ -79,6 +93,8 @@ class Game extends React.Component {
                   type="button"
                   key={ index }
                   data-testid={ dataTestId }
+                  disabled={ btnDisabled }
+                  onClick={ (evt) => this.disableBtnQuestions(evt) }
                 >
                   {answer}
                 </button>))}
