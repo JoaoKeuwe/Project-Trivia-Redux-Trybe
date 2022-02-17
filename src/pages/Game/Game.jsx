@@ -8,6 +8,8 @@ import './Game.css';
 
 const NUMBER_RANDOM = 0.5;
 const RESPONSE_CODE = 3;
+const ONE_SECOND = 1000;
+const TIME_LIMIT = -1;
 
 class Game extends React.Component {
   constructor() {
@@ -18,14 +20,27 @@ class Game extends React.Component {
       answers: [],
       isFetching: false,
       btnDisabled: false,
+      seconds: 30,
+      timeIsUp: false,
     };
 
     this.getQuestionsApi = this.getQuestionsApi.bind(this);
     this.shufflingQuestions = this.shufflingQuestions.bind(this);
+    this.setTimer = this.setTimer.bind(this);
+    this.limitTime = this.limitTime.bind(this);
   }
 
   componentDidMount() {
     this.getQuestionsApi();
+    this.setTimer();
+  }
+
+  setTimer() {
+    this.intervalId = setInterval(() => {
+      this.setState((prevState) => ({
+        seconds: prevState.seconds - 1,
+      }), () => this.limitTime());
+    }, ONE_SECOND);
   }
 
   getQuestionsApi = async () => {
@@ -80,6 +95,17 @@ class Game extends React.Component {
     });
   }
 
+  limitTime() {
+    const { seconds } = this.state;
+    if (seconds === TIME_LIMIT) {
+      this.setState({
+        btnDisabled: true,
+        timeIsUp: true,
+      });
+      clearInterval(this.intervalId);
+    }
+  }
+
   disableBtnQuestions(evt) {
     this.setState({ btnDisabled: true });
     console.log(evt.target);
@@ -89,12 +115,25 @@ class Game extends React.Component {
   }
 
   render() {
-    const { Allquestions, numberQuestion, isFetching, answers, btnDisabled } = this.state;
+    const {
+      Allquestions,
+      numberQuestion,
+      isFetching,
+      answers,
+      btnDisabled,
+      seconds,
+      timeIsUp,
+    } = this.state;
     return (
       <main>
         <Header />
         {isFetching && (
           <div>
+            <section>
+              {(timeIsUp)
+                ? <h2>Acabou o Tempo</h2>
+                : <h2>{`Voce tem... ${seconds} para responder`}</h2>}
+            </section>
             <h2 data-testid="question-category">
               {Allquestions[numberQuestion].category}
             </h2>
