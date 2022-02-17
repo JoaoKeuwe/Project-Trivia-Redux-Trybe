@@ -22,20 +22,23 @@ class Game extends React.Component {
       numberQuestion: 0,
       answers: [],
       btnDisabled: false,
+      nextQuestion: false,
       seconds: 30,
       timeIsUp: false,
     };
 
     this.getQuestionsApi = this.getQuestionsApi.bind(this);
+    this.saveQuestions = this.saveQuestions.bind(this);
     this.shufflingQuestions = this.shufflingQuestions.bind(this);
     this.setTimer = this.setTimer.bind(this);
     this.limitTime = this.limitTime.bind(this);
     this.sumBtnQuestions = this.sumBtnQuestions.bind(this);
+    this.nextQuestionBtn = this.nextQuestionBtn.bind(this);
   }
 
   componentDidMount() {
     this.getQuestionsApi();
-    this.setTimer();
+    // this.setTimer();
   }
 
   componentDidUpdate(prevProps) {
@@ -47,9 +50,12 @@ class Game extends React.Component {
 
   setTimer() {
     this.intervalId = setInterval(() => {
-      this.setState((prevState) => ({
-        seconds: prevState.seconds - 1,
-      }), () => this.limitTime());
+      this.setState(
+        (prevState) => ({
+          seconds: prevState.seconds - 1,
+        }),
+        () => this.limitTime(),
+      );
     }, ONE_SECOND);
   }
 
@@ -61,24 +67,35 @@ class Game extends React.Component {
     if (questionsReturn.response_code === INVALID_TOKEN_RESPONSE) {
       loginToken();
     } else {
-      this.shufflingQuestions(questionsReturn);
+      this.saveQuestions(questionsReturn);
     }
-  }
+  };
 
-  shufflingQuestions = (questionsReturn) => {
+  saveQuestions = (questionsReturn) => {
+    this.setState({
+      Allquestions: questionsReturn.results,
+    }, () => this.shufflingQuestions());
+  };
+
+  shufflingQuestions = () => {
+    const { Allquestions, numberQuestion } = this.state;
+
     // Coloca todas as respostas em um único Array;
     const allAnswers = [
-      questionsReturn.results[0].correct_answer,
-      ...questionsReturn.results[0].incorrect_answers];
+      Allquestions[numberQuestion].correct_answer,
+      ...Allquestions[numberQuestion].incorrect_answers,
+    ];
     const answersWithDataTestId = [];
-
     // Coloca todas as respostas com seu respectivo DataTestId em um Array para criar o Random;
     allAnswers.map((answer, index) => {
       if (index === 0) {
         answersWithDataTestId.push({ answer, dataTestId: CORRECT_ANSWER });
         return answersWithDataTestId;
       }
-      answersWithDataTestId.push({ answer, dataTestId: `wrong-answer-${index - 1}` });
+      answersWithDataTestId.push({
+        answer,
+        dataTestId: `wrong-answer-${index - 1}`,
+      });
       return answersWithDataTestId;
     });
 
@@ -87,10 +104,12 @@ class Game extends React.Component {
     const randomAnswers = answersWithDataTestId.sort(
       () => Math.random() - NUMBER_RANDOM,
     );
+
     this.setState({
-      Allquestions: questionsReturn.results,
       answers: randomAnswers,
-    });
+      seconds: 30,
+      timeIsUp: false,
+    }, () => this.setTimer());
   }
 
   limitTime() {
@@ -99,20 +118,20 @@ class Game extends React.Component {
       this.setState({
         btnDisabled: true,
         timeIsUp: true,
+        nextQuestion: true,
       });
       clearInterval(this.intervalId);
     }
   }
 
   sumBtnQuestions({ target }) {
-    const {
-      seconds,
-      Allquestions,
-      numberQuestion,
-    } = this.state;
+    const { seconds, Allquestions, numberQuestion } = this.state;
     const { handleScore } = this.props;
 
-    this.setState({ btnDisabled: true });
+    this.setState({
+      btnDisabled: true,
+      nextQuestion: true,
+    });
     clearInterval(this.intervalId);
 
     const answerOptions = document.querySelector('#answer-options');
@@ -127,12 +146,23 @@ class Game extends React.Component {
     }
   }
 
+  nextQuestionBtn() {
+    const answerOptions = document.querySelector('#answer-options');
+    answerOptions.classList.remove('allQuestions');
+
+    this.setState((prevState) => ({
+      numberQuestion: prevState.numberQuestion + 1,
+      btnDisabled: false,
+    }), () => this.shufflingQuestions());
+  }
+
   render() {
     const {
       Allquestions,
       numberQuestion,
       answers,
       btnDisabled,
+      nextQuestion,
       seconds,
       timeIsUp,
     } = this.state;
@@ -144,18 +174,19 @@ class Game extends React.Component {
           <div>
             <h2>{`Pontuação total: ${scoreState}`}</h2>
             <section>
-              {(timeIsUp)
-                ? <h2>Acabou o Tempo</h2>
-                : <h2>{`Voce tem... ${seconds} para responder`}</h2>}
+              {timeIsUp ? (
+                <h2>Acabou o Tempo</h2>
+              ) : (
+                <h2>{`Voce tem... ${seconds} para responder`}</h2>
+              )}
             </section>
             <h2 data-testid="question-category">
               {Allquestions[numberQuestion].category}
             </h2>
-            <h1 data-testid="question-text">{Allquestions[numberQuestion].question}</h1>
-            <div
-              data-testid="answer-options"
-              id="answer-options"
-            >
+            <h1 data-testid="question-text">
+              {Allquestions[numberQuestion].question}
+            </h1>
+            <div data-testid="answer-options" id="answer-options">
               {answers.map(({ answer, dataTestId }, index) => (
                 <button
                   type="button"
@@ -163,13 +194,24 @@ class Game extends React.Component {
                   data-testid={ dataTestId }
                   id={ dataTestId }
                   disabled={ btnDisabled }
-                  className={ (dataTestId === CORRECT_ANSWER)
-                    ? 'btn-correct' : 'btn-false' }
+                  className={
+                    dataTestId === CORRECT_ANSWER ? 'btn-correct' : 'btn-false'
+                  }
                   onClick={ (evt) => this.sumBtnQuestions(evt) }
                 >
                   {answer}
-                </button>))}
+                </button>
+              ))}
             </div>
+            {nextQuestion && (
+              <button
+                type="button"
+                data-testid="btn-next"
+                onClick={ () => this.nextQuestionBtn() }
+              >
+                Next (Poxima pergunta)
+              </button>
+            )}
           </div>
         )}
       </main>
