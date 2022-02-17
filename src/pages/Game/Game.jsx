@@ -2,12 +2,12 @@ import React from 'react';
 import propTypes from 'prop-types';
 import { connect } from 'react-redux';
 import Header from '../../components/Header';
-import { fetchQuestionsApi, fetchTokenApi } from '../../services/triviaApi';
+import { fetchQuestionsApi } from '../../services/triviaApi';
 import { getToken } from '../../store/action';
 import './Game.css';
 
 const NUMBER_RANDOM = 0.5;
-const RESPONSE_CODE = 3;
+const INVALID_TOKEN_RESPONSE = 3;
 const ONE_SECOND = 1000;
 const TIME_LIMIT = -1;
 
@@ -18,7 +18,6 @@ class Game extends React.Component {
       Allquestions: [],
       numberQuestion: 0,
       answers: [],
-      isFetching: false,
       btnDisabled: false,
       seconds: 30,
       timeIsUp: false,
@@ -35,6 +34,13 @@ class Game extends React.Component {
     this.setTimer();
   }
 
+  componentDidUpdate(prevProps) {
+    const { tokenState } = this.props;
+    if (tokenState !== prevProps.tokenState) {
+      this.getQuestionsApi();
+    }
+  }
+
   setTimer() {
     this.intervalId = setInterval(() => {
       this.setState((prevState) => ({
@@ -44,24 +50,13 @@ class Game extends React.Component {
   }
 
   getQuestionsApi = async () => {
-    // const { tokenState } = this.props;
-    const tokenLocalStorage = JSON.parse(localStorage.getItem('token'));
-    const questionsReturn = await fetchQuestionsApi(tokenLocalStorage.token);
+    const { loginToken } = this.props;
+    const tokenLocalStorage = localStorage.getItem('token');
+    const questionsReturn = await fetchQuestionsApi(tokenLocalStorage);
 
-    // Essa condicao faz com que, se a resposta da API for 3 significando que o token expirou, o LocalStorage seja limpo e a funcao LoginState seja chamada para a requisicao de um novo token
-
-    if (questionsReturn.response_code === RESPONSE_CODE) {
-      console.log(questionsReturn);
-      localStorage.clear();
-
-      const newToken = await fetchTokenApi();
-      console.log(newToken);
-      const newQuestionsReturn = await fetchQuestionsApi(newToken.token);
-      console.log(newQuestionsReturn);
-
-      this.shufflingQuestions(newQuestionsReturn);
+    if (questionsReturn.response_code === INVALID_TOKEN_RESPONSE) {
+      loginToken();
     } else {
-      console.log(questionsReturn);
       this.shufflingQuestions(questionsReturn);
     }
   }
@@ -91,7 +86,6 @@ class Game extends React.Component {
     this.setState({
       Allquestions: questionsReturn.results,
       answers: randomAnswers,
-      isFetching: true,
     });
   }
 
@@ -118,7 +112,6 @@ class Game extends React.Component {
     const {
       Allquestions,
       numberQuestion,
-      isFetching,
       answers,
       btnDisabled,
       seconds,
@@ -127,7 +120,7 @@ class Game extends React.Component {
     return (
       <main>
         <Header />
-        {isFetching && (
+        {Allquestions.length > 0 && (
           <div>
             <section>
               {(timeIsUp)
@@ -168,12 +161,13 @@ Game.propTypes = {
   loginToken: propTypes.func,
 }.isRequired;
 
-const mapDispatchToProps = (dispatch) => ({
-  loginToken: () => dispatch(getToken()),
-});
-
 const mapStateToProps = (state) => ({
   tokenState: state.token,
+  // scoreState: state.pl
+});
+
+const mapDispatchToProps = (dispatch) => ({
+  loginToken: () => dispatch(getToken()),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Game);

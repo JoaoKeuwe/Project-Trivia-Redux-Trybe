@@ -74,8 +74,8 @@ class Login extends React.Component {
             data-testid="btn-play"
             name="isSaveButtonDisabled"
             disabled={ isLoginButtonDisabled }
-            onClick={ async () => {
-              await handleTokenClick(loginName, loginEmail);
+            onClick={ () => {
+              handleTokenClick(loginName, loginEmail);
               history.push('/game');
             } }
           >
