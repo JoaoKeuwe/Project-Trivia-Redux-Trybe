@@ -1,5 +1,6 @@
 export const LOGIN = 'LOGIN';
 export const SUCESS_RESPONSE = 'SUCESS_RESPONSE';
+export const SUM_OF_POINTS = 'SUM_OF_POINTS';
 
 export function login(name, email) {
   return {
@@ -17,14 +18,21 @@ export function sucessResponse(token) {
 }
 
 export function getToken() {
-  return async (dispeatch) => {
+  return async (dispatch) => {
     try {
       const response = await fetch('https://opentdb.com/api_token.php?command=request');
-      const token = await response.json();
-      localStorage.setItem('token', JSON.stringify(token));
-      dispeatch(sucessResponse(token.token));
+      const { token } = await response.json();
+      localStorage.setItem('token', token);
+      dispatch(sucessResponse(token));
     } catch (error) {
       console.log(error);
     }
+  };
+}
+
+export function sumScore(points) {
+  return {
+    token: SUM_OF_POINTS,
+    points,
   };
 }

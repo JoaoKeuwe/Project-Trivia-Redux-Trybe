@@ -4,7 +4,7 @@ import './App.css';
 import { Route, Switch } from 'react-router-dom';
 import Settings from './pages/Settings';
 import Login from './pages/Login';
-import Game from './pages/Game';
+import Game from './pages/Game/Game';
 
 export default function App() {
   return (

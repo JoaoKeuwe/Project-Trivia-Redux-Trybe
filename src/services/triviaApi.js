@@ -5,9 +5,10 @@ export const fetchQuestionsApi = (token) => {
   return questionsRequest;
 };
 
-export const fetchTokenApi = () => {
-  const tokenRequest = fetch('https://opentdb.com/api_token.php?command=request')
-    .then((response) => response.json())
-    .then((data) => data);
+export const fetchTokenApi = async () => {
+  const response = await fetch('https://opentdb.com/api_token.php?command=request');
+  const tokenRequest = await response.json();
+
+  localStorage.setItem('token', JSON.stringify(tokenRequest));
   return tokenRequest;
 };
