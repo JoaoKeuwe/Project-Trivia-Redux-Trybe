@@ -3,13 +3,16 @@ import propTypes from 'prop-types';
 import { connect } from 'react-redux';
 import Header from '../../components/Header';
 import { fetchQuestionsApi } from '../../services/triviaApi';
-import { getToken } from '../../store/action';
+import { getToken, sumScore } from '../../store/action';
 import './Game.css';
 
 const NUMBER_RANDOM = 0.5;
 const INVALID_TOKEN_RESPONSE = 3;
+const CORRECT_ANSWER = 'correct-answer';
 const ONE_SECOND = 1000;
 const TIME_LIMIT = -1;
+const POINTS_OF_DIFFICULTY = { hard: 3, medium: 2, easy: 1 };
+const HIT_POINTS = 10;
 
 class Game extends React.Component {
   constructor() {
@@ -27,6 +30,7 @@ class Game extends React.Component {
     this.shufflingQuestions = this.shufflingQuestions.bind(this);
     this.setTimer = this.setTimer.bind(this);
     this.limitTime = this.limitTime.bind(this);
+    this.sumBtnQuestions = this.sumBtnQuestions.bind(this);
   }
 
   componentDidMount() {
@@ -71,7 +75,7 @@ class Game extends React.Component {
     // Coloca todas as respostas com seu respectivo DataTestId em um Array para criar o Random;
     allAnswers.map((answer, index) => {
       if (index === 0) {
-        answersWithDataTestId.push({ answer, dataTestId: 'correct-answer' });
+        answersWithDataTestId.push({ answer, dataTestId: CORRECT_ANSWER });
         return answersWithDataTestId;
       }
       answersWithDataTestId.push({ answer, dataTestId: `wrong-answer-${index - 1}` });
@@ -100,12 +104,27 @@ class Game extends React.Component {
     }
   }
 
-  disableBtnQuestions(evt) {
+  sumBtnQuestions({ target }) {
+    const {
+      seconds,
+      Allquestions,
+      numberQuestion,
+    } = this.state;
+    const { handleScore } = this.props;
+
     this.setState({ btnDisabled: true });
-    console.log(evt.target);
+    clearInterval(this.intervalId);
+
     const answerOptions = document.querySelector('#answer-options');
     answerOptions.classList.add('allQuestions');
-    console.log(answerOptions);
+
+    if (target.id === CORRECT_ANSWER) {
+      const difficulty = POINTS_OF_DIFFICULTY[Allquestions[numberQuestion].difficulty];
+      const pointsSecond = seconds * difficulty;
+      const totalValue = HIT_POINTS + pointsSecond;
+
+      handleScore(totalValue);
+    }
   }
 
   render() {
@@ -117,11 +136,13 @@ class Game extends React.Component {
       seconds,
       timeIsUp,
     } = this.state;
+    const { scoreState } = this.props;
     return (
       <main>
         <Header />
         {Allquestions.length > 0 && (
           <div>
+            <h2>{`Pontuação total: ${scoreState}`}</h2>
             <section>
               {(timeIsUp)
                 ? <h2>Acabou o Tempo</h2>
@@ -142,9 +163,9 @@ class Game extends React.Component {
                   data-testid={ dataTestId }
                   id={ dataTestId }
                   disabled={ btnDisabled }
-                  className={ (dataTestId === 'correct-answer')
+                  className={ (dataTestId === CORRECT_ANSWER)
                     ? 'btn-correct' : 'btn-false' }
-                  onClick={ (evt) => this.disableBtnQuestions(evt) }
+                  onClick={ (evt) => this.sumBtnQuestions(evt) }
                 >
                   {answer}
                 </button>))}
@@ -158,16 +179,19 @@ class Game extends React.Component {
 
 Game.propTypes = {
   tokenState: propTypes.string,
+  scoreState: propTypes.number,
   loginToken: propTypes.func,
+  handleScore: propTypes.func,
 }.isRequired;
 
 const mapStateToProps = (state) => ({
   tokenState: state.token,
-  // scoreState: state.pl
+  scoreState: state.player.score,
 });
 
 const mapDispatchToProps = (dispatch) => ({
   loginToken: () => dispatch(getToken()),
+  handleScore: (points) => dispatch(sumScore(points)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Game);
