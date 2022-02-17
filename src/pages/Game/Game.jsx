@@ -3,13 +3,17 @@ import propTypes from 'prop-types';
 import { connect } from 'react-redux';
 import Header from '../../components/Header';
 import { fetchQuestionsApi } from '../../services/triviaApi';
-import { getToken } from '../../store/action';
+import { getToken, sumScore } from '../../store/action';
 import './Game.css';
 
 const NUMBER_RANDOM = 0.5;
 const INVALID_TOKEN_RESPONSE = 3;
+const CORRECT_ANSWER = 'correct-answer';
 const ONE_SECOND = 1000;
 const TIME_LIMIT = -1;
+const POINTS_OF_DIFFICULTY = { hard: 3, medium: 2, easy: 1 };
+const HIT_POINTS = 10;
+const MAX_QUESTIONS_LENGTH = 4;
 
 class Game extends React.Component {
   constructor() {
@@ -19,19 +23,23 @@ class Game extends React.Component {
       numberQuestion: 0,
       answers: [],
       btnDisabled: false,
+      nextQuestion: false,
       seconds: 30,
       timeIsUp: false,
     };
 
     this.getQuestionsApi = this.getQuestionsApi.bind(this);
+    this.saveQuestions = this.saveQuestions.bind(this);
     this.shufflingQuestions = this.shufflingQuestions.bind(this);
     this.setTimer = this.setTimer.bind(this);
     this.limitTime = this.limitTime.bind(this);
+    this.sumBtnQuestions = this.sumBtnQuestions.bind(this);
+    this.nextQuestionBtn = this.nextQuestionBtn.bind(this);
   }
 
   componentDidMount() {
     this.getQuestionsApi();
-    this.setTimer();
+    // this.setTimer();
   }
 
   componentDidUpdate(prevProps) {
@@ -43,9 +51,12 @@ class Game extends React.Component {
 
   setTimer() {
     this.intervalId = setInterval(() => {
-      this.setState((prevState) => ({
-        seconds: prevState.seconds - 1,
-      }), () => this.limitTime());
+      this.setState(
+        (prevState) => ({
+          seconds: prevState.seconds - 1,
+        }),
+        () => this.limitTime(),
+      );
     }, ONE_SECOND);
   }
 
@@ -57,24 +68,33 @@ class Game extends React.Component {
     if (questionsReturn.response_code === INVALID_TOKEN_RESPONSE) {
       loginToken();
     } else {
-      this.shufflingQuestions(questionsReturn);
+      this.saveQuestions(questionsReturn);
     }
-  }
+  };
 
-  shufflingQuestions = (questionsReturn) => {
-    // Coloca todas as respostas em um único Array;
+  saveQuestions = (questionsReturn) => {
+    this.setState({
+      Allquestions: questionsReturn.results,
+    }, () => this.shufflingQuestions());
+  };
+
+  shufflingQuestions = () => {
+    const { Allquestions, numberQuestion } = this.state;
+
     const allAnswers = [
-      questionsReturn.results[0].correct_answer,
-      ...questionsReturn.results[0].incorrect_answers];
+      Allquestions[numberQuestion].correct_answer,
+      ...Allquestions[numberQuestion].incorrect_answers,
+    ];
     const answersWithDataTestId = [];
-
-    // Coloca todas as respostas com seu respectivo DataTestId em um Array para criar o Random;
     allAnswers.map((answer, index) => {
       if (index === 0) {
-        answersWithDataTestId.push({ answer, dataTestId: 'correct-answer' });
+        answersWithDataTestId.push({ answer, dataTestId: CORRECT_ANSWER });
         return answersWithDataTestId;
       }
-      answersWithDataTestId.push({ answer, dataTestId: `wrong-answer-${index - 1}` });
+      answersWithDataTestId.push({
+        answer,
+        dataTestId: `wrong-answer-${index - 1}`,
+      });
       return answersWithDataTestId;
     });
 
@@ -83,10 +103,12 @@ class Game extends React.Component {
     const randomAnswers = answersWithDataTestId.sort(
       () => Math.random() - NUMBER_RANDOM,
     );
+
     this.setState({
-      Allquestions: questionsReturn.results,
       answers: randomAnswers,
-    });
+      seconds: 30,
+      timeIsUp: false,
+    }, () => this.setTimer());
   }
 
   limitTime() {
@@ -95,17 +117,49 @@ class Game extends React.Component {
       this.setState({
         btnDisabled: true,
         timeIsUp: true,
+        nextQuestion: true,
       });
       clearInterval(this.intervalId);
     }
   }
 
-  disableBtnQuestions(evt) {
-    this.setState({ btnDisabled: true });
-    console.log(evt.target);
+  sumBtnQuestions({ target }) {
+    const { seconds, Allquestions, numberQuestion } = this.state;
+    const { handleScore } = this.props;
+
+    this.setState({
+      btnDisabled: true,
+      nextQuestion: true,
+    });
+    clearInterval(this.intervalId);
+
     const answerOptions = document.querySelector('#answer-options');
     answerOptions.classList.add('allQuestions');
-    console.log(answerOptions);
+
+    if (target.id === CORRECT_ANSWER) {
+      const difficulty = POINTS_OF_DIFFICULTY[Allquestions[numberQuestion].difficulty];
+      const pointsSecond = seconds * difficulty;
+      const totalValue = HIT_POINTS + pointsSecond;
+
+      handleScore(totalValue);
+    }
+  }
+
+  nextQuestionBtn() {
+    const { numberQuestion } = this.state;
+
+    const answerOptions = document.querySelector('#answer-options');
+    answerOptions.classList.remove('allQuestions');
+
+    if (numberQuestion !== MAX_QUESTIONS_LENGTH) {
+      this.setState((prevState) => ({
+        numberQuestion: prevState.numberQuestion + 1,
+        btnDisabled: false,
+      }), () => this.shufflingQuestions());
+    } else {
+      const { history } = this.props;
+      history.push('/feedback');
+    }
   }
 
   render() {
@@ -114,27 +168,31 @@ class Game extends React.Component {
       numberQuestion,
       answers,
       btnDisabled,
+      nextQuestion,
       seconds,
       timeIsUp,
     } = this.state;
+    const { scoreState } = this.props;
     return (
       <main>
         <Header />
         {Allquestions.length > 0 && (
           <div>
+            <h2>{`Pontuação total: ${scoreState}`}</h2>
             <section>
-              {(timeIsUp)
-                ? <h2>Acabou o Tempo</h2>
-                : <h2>{`Voce tem... ${seconds} para responder`}</h2>}
+              {timeIsUp ? (
+                <h2>Acabou o Tempo</h2>
+              ) : (
+                <h2>{`Voce tem... ${seconds} para responder`}</h2>
+              )}
             </section>
             <h2 data-testid="question-category">
               {Allquestions[numberQuestion].category}
             </h2>
-            <h1 data-testid="question-text">{Allquestions[numberQuestion].question}</h1>
-            <div
-              data-testid="answer-options"
-              id="answer-options"
-            >
+            <h1 data-testid="question-text">
+              {Allquestions[numberQuestion].question}
+            </h1>
+            <div data-testid="answer-options" id="answer-options">
               {answers.map(({ answer, dataTestId }, index) => (
                 <button
                   type="button"
@@ -142,13 +200,24 @@ class Game extends React.Component {
                   data-testid={ dataTestId }
                   id={ dataTestId }
                   disabled={ btnDisabled }
-                  className={ (dataTestId === 'correct-answer')
-                    ? 'btn-correct' : 'btn-false' }
-                  onClick={ (evt) => this.disableBtnQuestions(evt) }
+                  className={
+                    dataTestId === CORRECT_ANSWER ? 'btn-correct' : 'btn-false'
+                  }
+                  onClick={ (evt) => this.sumBtnQuestions(evt) }
                 >
                   {answer}
-                </button>))}
+                </button>
+              ))}
             </div>
+            {nextQuestion && (
+              <button
+                type="button"
+                data-testid="btn-next"
+                onClick={ () => this.nextQuestionBtn() }
+              >
+                Next (Poxima pergunta)
+              </button>
+            )}
           </div>
         )}
       </main>
@@ -158,16 +227,22 @@ class Game extends React.Component {
 
 Game.propTypes = {
   tokenState: propTypes.string,
+  scoreState: propTypes.number,
   loginToken: propTypes.func,
+  handleScore: propTypes.func,
+  history: propTypes.shape({
+    push: propTypes.func,
+  }),
 }.isRequired;
 
 const mapStateToProps = (state) => ({
   tokenState: state.token,
-  // scoreState: state.pl
+  scoreState: state.player.score,
 });
 
 const mapDispatchToProps = (dispatch) => ({
   loginToken: () => dispatch(getToken()),
+  handleScore: (points) => dispatch(sumScore(points)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Game);

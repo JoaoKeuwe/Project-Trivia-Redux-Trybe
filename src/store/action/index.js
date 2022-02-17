@@ -32,7 +32,7 @@ export function getToken() {
 
 export function sumScore(points) {
   return {
-    token: SUM_OF_POINTS,
+    type: SUM_OF_POINTS,
     points,
   };
 }
