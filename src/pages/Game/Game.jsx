@@ -13,6 +13,7 @@ const ONE_SECOND = 1000;
 const TIME_LIMIT = -1;
 const POINTS_OF_DIFFICULTY = { hard: 3, medium: 2, easy: 1 };
 const HIT_POINTS = 10;
+const MAX_QUESTIONS_LENGTH = 4;
 
 class Game extends React.Component {
   constructor() {
@@ -80,13 +81,11 @@ class Game extends React.Component {
   shufflingQuestions = () => {
     const { Allquestions, numberQuestion } = this.state;
 
-    // Coloca todas as respostas em um único Array;
     const allAnswers = [
       Allquestions[numberQuestion].correct_answer,
       ...Allquestions[numberQuestion].incorrect_answers,
     ];
     const answersWithDataTestId = [];
-    // Coloca todas as respostas com seu respectivo DataTestId em um Array para criar o Random;
     allAnswers.map((answer, index) => {
       if (index === 0) {
         answersWithDataTestId.push({ answer, dataTestId: CORRECT_ANSWER });
@@ -147,13 +146,20 @@ class Game extends React.Component {
   }
 
   nextQuestionBtn() {
+    const { numberQuestion } = this.state;
+
     const answerOptions = document.querySelector('#answer-options');
     answerOptions.classList.remove('allQuestions');
 
-    this.setState((prevState) => ({
-      numberQuestion: prevState.numberQuestion + 1,
-      btnDisabled: false,
-    }), () => this.shufflingQuestions());
+    if (numberQuestion !== MAX_QUESTIONS_LENGTH) {
+      this.setState((prevState) => ({
+        numberQuestion: prevState.numberQuestion + 1,
+        btnDisabled: false,
+      }), () => this.shufflingQuestions());
+    } else {
+      const { history } = this.props;
+      history.push('/feedback');
+    }
   }
 
   render() {
@@ -224,6 +230,9 @@ Game.propTypes = {
   scoreState: propTypes.number,
   loginToken: propTypes.func,
   handleScore: propTypes.func,
+  history: propTypes.shape({
+    push: propTypes.func,
+  }),
 }.isRequired;
 
 const mapStateToProps = (state) => ({
