@@ -14,6 +14,7 @@ class Ranking extends React.Component {
         <button
           type="button"
           onClick={ this.initialPage }
+          data-testid="btn-go-home"
         >
           inicio
         </button>
