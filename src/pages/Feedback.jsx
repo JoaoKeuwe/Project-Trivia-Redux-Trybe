@@ -40,8 +40,8 @@ class Feedback extends React.Component {
             }
           </section>
           <section>
-            <p data-testid="feedback-total-score">{`pontos: ${score}`}</p>
-            <p data-tesid="feedback-total-question">{`acertos: ${assertions}`}</p>
+            <p data-testid="feedback-total-score">{score}</p>
+            <p data-tesid="feedback-total-question">{assertions}</p>
             <button
               data-testid="btn-play-again"
               type="submit"
@@ -51,11 +51,10 @@ class Feedback extends React.Component {
             </button>
             <button
               type="button"
-              data-testid="ranking-title"
+              data-testid="btn-ranking"
               onClick={ () => this.redirectRanking() }
             >
-              VER RANKING
-
+              Ranking
             </button>
           </section>
         </main>
