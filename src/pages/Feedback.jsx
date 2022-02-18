@@ -6,6 +6,13 @@ import Header from '../components/Header';
 const MIN_ASSERTIONS = 3;
 
 class Feedback extends React.Component {
+  constructor() {
+    super();
+
+    this.redirectLogin = this.redirectLogin.bind(this);
+    this.redirectRanking = this.redirectRanking.bind(this);
+  }
+
   redirectLogin = () => {
     const { history } = this.props;
     history.push('/');
@@ -21,34 +28,31 @@ class Feedback extends React.Component {
     return (
       <>
         <Header />
+        <header>
+          <h2 data-testid="header-score">{ score }</h2>
+        </header>
         <main>
           <section>
             {
-              Number(assertions) < MIN_ASSERTIONS
+              assertions < MIN_ASSERTIONS
                 ? <p data-testid="feedback-text">Could be better...</p>
-                : <p data-testid="feedback-text">Well done!</p>
+                : <p data-testid="feedback-text">Well Done!</p>
             }
-            <p data-tesid="feedback-total-question">
-              acertos:
-              { assertions }
-            </p>
           </section>
           <section>
-            <p data-testid="feedback-total-score">
-              pontos:
-              { score }
-            </p>
+            <p data-testid="feedback-total-score">{`pontos: ${score}`}</p>
+            <p data-tesid="feedback-total-question">{`acertos: ${assertions}`}</p>
             <button
               data-testid="btn-play-again"
               type="submit"
-              onClick={ this.redirectLogin() }
+              onClick={ () => this.redirectLogin() }
             >
               Play Again
             </button>
             <button
               type="button"
               data-testid="ranking-title"
-              onClick={ this.redirectRanking }
+              onClick={ () => this.redirectRanking() }
             >
               VER RANKING
 
