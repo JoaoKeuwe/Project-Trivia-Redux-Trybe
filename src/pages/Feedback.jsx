@@ -41,7 +41,7 @@ class Feedback extends React.Component {
           </section>
           <section>
             <p data-testid="feedback-total-score">{score}</p>
-            <p data-tesid="feedback-total-question">{assertions}</p>
+            <p data-testid="feedback-total-question">{ assertions }</p>
             <button
               data-testid="btn-play-again"
               type="submit"
